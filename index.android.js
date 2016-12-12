@@ -12,6 +12,14 @@ import {
   View
 } from 'react-native';
 
+import AV from 'leancloud-storage';
+const APP_ID = 'Jv6ibodNTR8R6XRtdBH3dXgf-gzGzoHsz';
+const APP_KEY = 'ldp0Hq4w2wO9FwpjNtsFRwjO';
+AV.init({
+    appId: APP_ID,
+    appKey: APP_KEY
+});
+
 export default class Chichi extends Component {
   render() {
     return (

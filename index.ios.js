@@ -9,10 +9,52 @@ import {
   AppRegistry,
   StyleSheet,
   Text,
-  View
+  View,
+  PushNotificationIOS,
+  AlertIOS
 } from 'react-native';
 
+import AV from 'leancloud-storage';
+const APP_ID = 'Jv6ibodNTR8R6XRtdBH3dXgf-gzGzoHsz';
+const APP_KEY = 'ldp0Hq4w2wO9FwpjNtsFRwjO';
+AV.init({
+    appId: APP_ID,
+    appKey: APP_KEY
+});
+const LeancloudInstallation = require('leancloud-installation')(AV);
+
 export default class Chichi extends Component {
+    componentDidMount() {
+        PushNotificationIOS.addEventListener('register', this._onRegister);
+        PushNotificationIOS.requestPermissions();
+    }
+    componentWillUnmount() {
+        PushNotificationIOS.removeEventListener('register', this._onRegister);
+    }
+
+    _onRegister(deviceToken) {
+        AlertIOS.alert(
+            'Registered For Remote Push',
+            `Device Token: ${deviceToken}`,
+            [{
+                text: 'Dismiss',
+                onPress: null,
+            }]
+        );
+        LeancloudInstallation.getCurrent()
+            .then(installation => {
+                return installation.save({
+                    deviceToken: deviceToken
+                });
+            })
+            .then(installation => {
+                PushNotificationIOS.presentLocalNotification({
+                    alertBody: 'Installation updated.'
+                });
+            })
+            .catch(error => this.log(error));
+    }
+
   render() {
     return (
       <View style={styles.container}>
