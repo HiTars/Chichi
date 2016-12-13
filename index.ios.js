@@ -4,15 +4,17 @@
  * @flow
  */
 
-import React, { Component } from 'react';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View,
-  PushNotificationIOS,
-  AlertIOS
-} from 'react-native';
+const React = require('react');
+const ReactNative = require('react-native');
+const {
+    Text,
+    View,
+    AlertIOS,
+    StyleSheet,
+    AppRegistry,
+    TouchableHighlight,
+    PushNotificationIOS,
+} = ReactNative;
 
 import AV from 'leancloud-storage';
 const APP_ID = 'Jv6ibodNTR8R6XRtdBH3dXgf-gzGzoHsz';
@@ -23,16 +25,88 @@ AV.init({
 });
 const LeancloudInstallation = require('leancloud-installation')(AV);
 
-export default class Chichi extends Component {
-    componentDidMount() {
-        PushNotificationIOS.addEventListener('register', this._onRegister);
+class Button extends React.Component {
+    render() {
+        return (
+            <TouchableHighlight
+                underlayColor={'white'}
+                style={styles.button}
+                onPress={this.props.onPress}>
+                <Text style={styles.buttonLabel}>
+                    {this.props.label}
+                </Text>
+            </TouchableHighlight>
+        );
+    }
+}
+
+export default class Chichi extends React.Component {
+    componentWillMount() {
+        PushNotificationIOS.addEventListener('register', this._onRegistered);
+        PushNotificationIOS.addEventListener('registrationError', this._onRegistrationError);
+        PushNotificationIOS.addEventListener('notification', this._onRemoteNotification);
+        PushNotificationIOS.addEventListener('localNotification', this._onLocalNotification);
+
         PushNotificationIOS.requestPermissions();
     }
+
     componentWillUnmount() {
-        PushNotificationIOS.removeEventListener('register', this._onRegister);
+        PushNotificationIOS.removeEventListener('register', this._onRegistered);
+        PushNotificationIOS.removeEventListener('registrationError', this._onRegistrationError);
+        PushNotificationIOS.removeEventListener('notification', this._onRemoteNotification);
+        PushNotificationIOS.removeEventListener('localNotification', this._onLocalNotification);
     }
 
-    _onRegister(deviceToken) {
+    render() {
+        return (
+            <View>
+                <Button
+                    onPress={() => PushNotificationIOS.setApplicationIconBadgeNumber(42)}
+                    label="Set app's icon badge to 42"
+                />
+                <Button
+                    onPress={() => PushNotificationIOS.setApplicationIconBadgeNumber(0)}
+                    label="Clear app's icon badge"
+                />
+                <Button
+                    onPress={this._sendNotification}
+                    label="Send fake notification"
+                />
+                <Button
+                    onPress={this._sendLocalNotification}
+                    label="Send fake local notification"
+                />
+                <Button
+                    onPress={this._showPermissions.bind(this)}
+                    label="Show enabled permissions"
+                />
+            </View>
+        );
+    }
+
+    _sendNotification() {
+        require('RCTDeviceEventEmitter').emit('remoteNotificationReceived', {
+            aps: {
+                alert: 'Sample notification',
+                badge: '+1',
+                sound: 'default',
+                category: 'REACT_NATIVE'
+            },
+        });
+    }
+
+    _sendLocalNotification() {
+        require('RCTDeviceEventEmitter').emit('localNotificationReceived', {
+            aps: {
+                alert: 'Sample local notification',
+                badge: '+1',
+                sound: 'default',
+                category: 'REACT_NATIVE'
+            },
+        });
+    }
+
+    _onRegistered(deviceToken) {
         AlertIOS.alert(
             'Registered For Remote Push',
             `Device Token: ${deviceToken}`,
@@ -55,41 +129,62 @@ export default class Chichi extends Component {
             .catch(error => this.log(error));
     }
 
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.ios.js
-        </Text>
-        <Text style={styles.instructions}>
-          Press Cmd+R to reload,{'\n'}
-          Cmd+D or shake for dev menu
-        </Text>
-      </View>
-    );
-  }
+    _onRegistrationError(error) {
+        AlertIOS.alert(
+            'Failed To Register For Remote Push',
+            `Error (${error.code}): ${error.message}`,
+            [{
+                text: 'Dismiss',
+                onPress: null,
+            }]
+        );
+    }
+
+    _onRemoteNotification(notification) {
+        AlertIOS.alert(
+            'Push Notification Received',
+            'Alert message: ' + notification.getMessage(),
+            [{
+                text: 'Dismiss',
+                onPress: null,
+            }]
+        );
+    }
+
+    _onLocalNotification(notification){
+        AlertIOS.alert(
+            'Local Notification Received',
+            'Alert message: ' + notification.getMessage(),
+            [{
+                text: 'Dismiss',
+                onPress: null,
+            }]
+        );
+    }
+
+    _showPermissions() {
+        PushNotificationIOS.checkPermissions((permissions) => {
+            AlertIOS.alert(
+                'Permissions',
+                'Permissions: ' + JSON.stringify(permissions),
+                [{
+                    text: 'Dismiss',
+                    onPress: null,
+                }]
+            );
+        });
+    }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
+    button: {
+        padding: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    buttonLabel: {
+        color: 'blue',
+    },
 });
 
 AppRegistry.registerComponent('Chichi', () => Chichi);
