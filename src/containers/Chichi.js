@@ -53,10 +53,10 @@ class ChichiApp extends Component {
     }
 
     componentWillMount() {
-        //PushNotificationIOS.addEventListener('register', this._onRegistered.bind(this));
-        //PushNotificationIOS.addEventListener('registrationError', this._onRegistrationError);
-        //PushNotificationIOS.addEventListener('notification', this._onRemoteNotification);
-        //PushNotificationIOS.addEventListener('localNotification', this._onLocalNotification);
+        PushNotificationIOS.addEventListener('register', this._onRegistered.bind(this));
+        PushNotificationIOS.addEventListener('registrationError', this._onRegistrationError);
+        PushNotificationIOS.addEventListener('notification', this._onRemoteNotification);
+        PushNotificationIOS.addEventListener('localNotification', this._onLocalNotification);
 
         PushNotificationIOS.requestPermissions();
     }
@@ -70,10 +70,10 @@ class ChichiApp extends Component {
     }
 
     componentWillUnmount() {
-        //PushNotificationIOS.removeEventListener('register', this._onRegistered.bind(this));
-        //PushNotificationIOS.removeEventListener('registrationError', this._onRegistrationError);
-        //PushNotificationIOS.removeEventListener('notification', this._onRemoteNotification);
-        //PushNotificationIOS.removeEventListener('localNotification', this._onLocalNotification);
+        PushNotificationIOS.removeEventListener('register', this._onRegistered.bind(this));
+        PushNotificationIOS.removeEventListener('registrationError', this._onRegistrationError);
+        PushNotificationIOS.removeEventListener('notification', this._onRemoteNotification);
+        PushNotificationIOS.removeEventListener('localNotification', this._onLocalNotification);
     }
 
     render() {
@@ -127,7 +127,7 @@ class ChichiApp extends Component {
 
     _subStakeInfo(value) {
         this.setState({switchIsOn: value});
-        LeancloudInstallation.getCurrent()
+        Installation.getCurrent()
             .then(installation => {
                 // Installation 的 localStorage 有问题，拿不到缓存的 installation
                 return installation.save({
