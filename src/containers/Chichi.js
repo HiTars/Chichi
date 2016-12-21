@@ -1,28 +1,27 @@
-const React = require('react');
+/**
+ * Created by mengzhu on 2016/12/20.
+ */
+import React from 'react';
 const {
     Component,
     PropTypes,
 } = React;
 
-const ReactNative = require('react-native');
+import ReactNative from 'react-native';
 const {
     Text,
     View,
     Switch,
+    ListView,
     AlertIOS,
     StyleSheet,
     TouchableHighlight,
     PushNotificationIOS,
 } = ReactNative;
 
-import AV from 'leancloud-storage';
-const APP_ID = 'Jv6ibodNTR8R6XRtdBH3dXgf-gzGzoHsz';
-const APP_KEY = 'ldp0Hq4w2wO9FwpjNtsFRwjO';
-AV.init({
-    appId: APP_ID,
-    appKey: APP_KEY
-});
-const LeancloudInstallation = require('leancloud-installation')(AV);
+import { connect } from 'react-redux';
+import { Installation } from '../Utils';
+import { updateStakeInfo } from '../actions/StakeInfo';
 
 class Button extends Component {
     render() {
@@ -39,32 +38,42 @@ class Button extends Component {
     }
 }
 
-export default class HomeScene extends Component {
+class ChichiApp extends Component {
 
-    static propTypes = {
-        title: PropTypes.string.isRequired,
-        navigator: PropTypes.object.isRequired,
-    };
+    constructor(props) {
+        super(props);
 
-    state = {
-        deviceToken: '',
-        switchIsOn: false,
-    };
+        this.state = {
+            deviceToken: '',
+            switchIsOn: false,
+        };
+
+        // Bind callback methods to make `this` the correct context.
+        this._subStakeInfo = this._subStakeInfo.bind(this);
+    }
 
     componentWillMount() {
-        PushNotificationIOS.addEventListener('register', this._onRegistered.bind(this));
-        PushNotificationIOS.addEventListener('registrationError', this._onRegistrationError);
-        PushNotificationIOS.addEventListener('notification', this._onRemoteNotification);
-        PushNotificationIOS.addEventListener('localNotification', this._onLocalNotification);
+        //PushNotificationIOS.addEventListener('register', this._onRegistered.bind(this));
+        //PushNotificationIOS.addEventListener('registrationError', this._onRegistrationError);
+        //PushNotificationIOS.addEventListener('notification', this._onRemoteNotification);
+        //PushNotificationIOS.addEventListener('localNotification', this._onLocalNotification);
 
         PushNotificationIOS.requestPermissions();
     }
 
+    componentDidMount() {
+        this.props.updateStakeInfo();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        console.log(nextProps.stakes);
+    }
+
     componentWillUnmount() {
-        PushNotificationIOS.removeEventListener('register', this._onRegistered.bind(this));
-        PushNotificationIOS.removeEventListener('registrationError', this._onRegistrationError);
-        PushNotificationIOS.removeEventListener('notification', this._onRemoteNotification);
-        PushNotificationIOS.removeEventListener('localNotification', this._onLocalNotification);
+        //PushNotificationIOS.removeEventListener('register', this._onRegistered.bind(this));
+        //PushNotificationIOS.removeEventListener('registrationError', this._onRegistrationError);
+        //PushNotificationIOS.removeEventListener('notification', this._onRemoteNotification);
+        //PushNotificationIOS.removeEventListener('localNotification', this._onLocalNotification);
     }
 
     render() {
@@ -91,10 +100,29 @@ export default class HomeScene extends Component {
                     label="Show enabled permissions"
                 />
                 <Switch
-                    onValueChange={this._subStakeInfo.bind(this)}
+                    onValueChange={this._subStakeInfo}
                     value={this.state.switchIsOn} />
+                <Button
+                    onPress={this.props.updateStakeInfo}
+                    label="Load Stake Info"
+                />
+                <ListView
+                    dataSource={this.props.stakes}
+                    renderRow={(stake) => <Text>{stake.name}: {this._getStatusStr(stake.status)}</Text>}
+                />
             </View>
         )
+    }
+
+    _getStatusStr(status) {
+        switch (status) {
+            case '02':
+                return '空闲';
+            case '04':
+                return '充电';
+            default:
+                return status;
+        }
     }
 
     _subStakeInfo(value) {
@@ -134,7 +162,7 @@ export default class HomeScene extends Component {
 
     _onRegistered(deviceToken) {
         this.setState({deviceToken: deviceToken});
-        LeancloudInstallation.getCurrent()
+        Installation.getCurrent()
             .then(installation => {
                 return installation.save({
                     deviceToken: deviceToken
@@ -190,6 +218,29 @@ export default class HomeScene extends Component {
     }
 
 }
+
+ChichiApp.propTypes = {
+    stakes: PropTypes.object.isRequired,
+    updateStakeInfo: PropTypes.func.isRequired
+};
+
+const mapStateToProps = (state) => {
+    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    return {
+        stakes: ds.cloneWithRows(state.StakeInfo.stakes)
+    }
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        updateStakeInfo: () => dispatch(updateStakeInfo())
+    }
+};
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(ChichiApp);
 
 const styles = StyleSheet.create({
     button: {

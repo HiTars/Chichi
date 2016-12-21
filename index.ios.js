@@ -1,31 +1,4 @@
-const React = require('react');
-const {
-    Component,
-} = React;
+import { AppRegistry } from 'react-native';
+import App from './src/App';
 
-const ReactNative = require('react-native');
-const {
-    AppRegistry,
-    NavigatorIOS,
-} = ReactNative;
-
-import HomeScene from './src/components/HomeScene';
-
-class Chichi extends Component {
-
-    render() {
-        return (
-            <NavigatorIOS
-                initialRoute={{
-                    component: HomeScene,
-                    title: 'Chichi',
-                    passProps: { title: 'foo' }
-                }}
-                style={{flex: 1}}
-            />
-        )
-    }
-
-}
-
-AppRegistry.registerComponent('Chichi', () => Chichi);
+AppRegistry.registerComponent('Chichi', () => App);
