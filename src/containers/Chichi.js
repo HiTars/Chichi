@@ -30,11 +30,13 @@ class ChichiApp extends Component {
 
     this.state = {
       deviceToken: '',
-      switchIsOn: false,
+      subStakeInfo: false,
+      subGuahaoInfo: false,
     };
 
     // Bind callback methods to make `this` the correct context.
     this._subStakeInfo = this._subStakeInfo.bind(this);
+    this._subGuahaoInfo = this._subGuahaoInfo.bind(this);
   }
 
   componentWillMount() {
@@ -93,7 +95,7 @@ class ChichiApp extends Component {
         {/*/>*/}
         <Flex>
             <Switch onChange={this._subStakeInfo}
-                    checked={this.state.switchIsOn}/>
+                    checked={this.state.subStakeInfo}/>
             <Button type="primary"
                     size="small"
                     onClick={this.props.updateStakeInfo}
@@ -108,6 +110,16 @@ class ChichiApp extends Component {
           dataSource={this.props.stakes}
           renderRow={(stake) => <Text>{stake.name}: {this._getStatusStr(stake.status)}</Text>}
         />
+        <Flex>
+          <Switch onChange={this._subGuahaoInfo}
+                  checked={this.state.subGuahaoInfo}/>
+          <Button type="primary"
+                  size="small"
+                  onClick={this.props.updateStakeInfo}
+          >
+            Load Guahao
+          </Button>
+        </Flex>
       </View>
     )
   }
@@ -124,13 +136,26 @@ class ChichiApp extends Component {
   }
 
   _subStakeInfo(value) {
-    this.setState({switchIsOn: value});
+    this.setState({subStakeInfo: value});
     Installation.getCurrent()
       .then(installation => {
         // Installation 的 localStorage 有问题，拿不到缓存的 installation
         return installation.save({
           deviceToken: this.state.deviceToken,
           channels: (value ? ["stakeInfo"] : [])
+        });
+      })
+      .catch(error => this.log(error));
+  }
+
+  _subGuahaoInfo(value) {
+    this.setState({subGuahaoInfo: value});
+    Installation.getCurrent()
+      .then(installation => {
+        // Installation 的 localStorage 有问题，拿不到缓存的 installation
+        return installation.save({
+          deviceToken: this.state.deviceToken,
+          channels: (value ? ["guahaoInfo"] : [])
         });
       })
       .catch(error => this.log(error));
