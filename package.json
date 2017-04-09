@@ -7,6 +7,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "antd-mobile": "^1.0.8",
     "leancloud-installation": "^1.0.0",
     "leancloud-realtime": "^3.3.1",
     "leancloud-storage": "^1.5.3",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "babel-jest": "17.0.2",
+    "babel-plugin-import": "^1.1.1",
     "babel-preset-react-native": "1.9.0",
     "jest": "17.0.3",
     "react-test-renderer": "15.4.1"
